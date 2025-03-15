@@ -180,107 +180,107 @@ class GetSelectedTextTool : AbstractMcpTool<NoArgs>() {
     }
 }
 
-@Serializable
-data class ReplaceSelectedTextArgs(val text: String)
+//@Serializable
+//data class ReplaceSelectedTextArgs(val text: String)
+//
+//class ReplaceSelectedTextTool : AbstractMcpTool<ReplaceSelectedTextArgs>() {
+//    override val name: String = "replace_selected_text"
+//    override val description: String = """
+//        Replaces the currently selected text in the active editor with specified new text.
+//        Use this tool to modify code or content by replacing the user's text selection.
+//        Requires a text parameter containing the replacement content.
+//        Returns one of three possible responses:
+//            - "ok" if the text was successfully replaced
+//            - "no text selected" if no text is selected or no editor is open
+//            - "unknown error" if the operation fails
+//    """.trimIndent()
+//
+//    override fun handle(project: Project, args: ReplaceSelectedTextArgs): Response {
+//        var response: Response? = null
+//
+//        application.invokeAndWait {
+//            runWriteCommandAction(project, "Replace Selected Text", null, {
+//                val editor = getInstance(project).selectedTextEditor
+//                val document = editor?.document
+//                val selectionModel = editor?.selectionModel
+//                if (document != null && selectionModel != null && selectionModel.hasSelection()) {
+//                    document.replaceString(selectionModel.selectionStart, selectionModel.selectionEnd, args.text)
+//                    PsiDocumentManager.getInstance(project).commitDocument(document)
+//                    response = Response("ok")
+//                } else {
+//                    response = Response(error = "no text selected")
+//                }
+//            })
+//        }
+//
+//        return response ?: Response(error = "unknown error")
+//    }}
 
-class ReplaceSelectedTextTool : AbstractMcpTool<ReplaceSelectedTextArgs>() {
-    override val name: String = "replace_selected_text"
-    override val description: String = """
-        Replaces the currently selected text in the active editor with specified new text.
-        Use this tool to modify code or content by replacing the user's text selection.
-        Requires a text parameter containing the replacement content.
-        Returns one of three possible responses:
-            - "ok" if the text was successfully replaced
-            - "no text selected" if no text is selected or no editor is open
-            - "unknown error" if the operation fails
-    """.trimIndent()
+//@Serializable
+//data class ReplaceCurrentFileTextArgs(val text: String)
+//
+//class ReplaceCurrentFileTextTool : AbstractMcpTool<ReplaceCurrentFileTextArgs>() {
+//    override val name: String = "replace_current_file_text"
+//    override val description: String = """
+//        Replaces the entire content of the currently active file in the JetBrains IDE with specified new text.
+//        Use this tool when you need to completely overwrite the current file's content.
+//        Requires a text parameter containing the new content.
+//        Returns one of three possible responses:
+//        - "ok" if the file content was successfully replaced
+//        - "no file open" if no editor is active
+//        - "unknown error" if the operation fails
+//    """
+//
+//    override fun handle(project: Project, args: ReplaceCurrentFileTextArgs): Response {
+//        var response: Response? = null
+//        application.invokeAndWait {
+//            runWriteCommandAction(project, "Replace File Text", null, {
+//                val editor = getInstance(project).selectedTextEditor
+//                val document = editor?.document
+//                if (document != null) {
+//                    document.setText(args.text)
+//                    response = Response("ok")
+//                } else {
+//                    response = Response(error = "no file open")
+//                }
+//            })
+//        }
+//        return response ?: Response(error = "unknown error")
+//    }
+//}
 
-    override fun handle(project: Project, args: ReplaceSelectedTextArgs): Response {
-        var response: Response? = null
-
-        application.invokeAndWait {
-            runWriteCommandAction(project, "Replace Selected Text", null, {
-                val editor = getInstance(project).selectedTextEditor
-                val document = editor?.document
-                val selectionModel = editor?.selectionModel
-                if (document != null && selectionModel != null && selectionModel.hasSelection()) {
-                    document.replaceString(selectionModel.selectionStart, selectionModel.selectionEnd, args.text)
-                    PsiDocumentManager.getInstance(project).commitDocument(document)
-                    response = Response("ok")
-                } else {
-                    response = Response(error = "no text selected")
-                }
-            })
-        }
-
-        return response ?: Response(error = "unknown error")
-    }}
-
-@Serializable
-data class ReplaceCurrentFileTextArgs(val text: String)
-
-class ReplaceCurrentFileTextTool : AbstractMcpTool<ReplaceCurrentFileTextArgs>() {
-    override val name: String = "replace_current_file_text"
-    override val description: String = """
-        Replaces the entire content of the currently active file in the JetBrains IDE with specified new text.
-        Use this tool when you need to completely overwrite the current file's content.
-        Requires a text parameter containing the new content.
-        Returns one of three possible responses:
-        - "ok" if the file content was successfully replaced
-        - "no file open" if no editor is active
-        - "unknown error" if the operation fails
-    """
-
-    override fun handle(project: Project, args: ReplaceCurrentFileTextArgs): Response {
-        var response: Response? = null
-        application.invokeAndWait {
-            runWriteCommandAction(project, "Replace File Text", null, {
-                val editor = getInstance(project).selectedTextEditor
-                val document = editor?.document
-                if (document != null) {
-                    document.setText(args.text)
-                    response = Response("ok")
-                } else {
-                    response = Response(error = "no file open")
-                }
-            })
-        }
-        return response ?: Response(error = "unknown error")
-    }
-}
-
-@Serializable
-data class CreateNewFileWithTextArgs(val pathInProject: String, val text: String)
-
-class CreateNewFileWithTextTool : AbstractMcpTool<CreateNewFileWithTextArgs>() {
-    override val name: String = "create_new_file_with_text"
-    override val description: String = """
-        Creates a new file at the specified path within the project directory and populates it with the provided text.
-        Use this tool to generate new files in your project structure.
-        Requires two parameters:
-            - pathInProject: The relative path where the file should be created
-            - text: The content to write into the new file
-        Returns one of two possible responses:
-            - "ok" if the file was successfully created and populated
-            - "can't find project dir" if the project directory cannot be determined
-        Note: Creates any necessary parent directories automatically
-    """
-
-    override fun handle(project: Project, args: CreateNewFileWithTextArgs): Response {
-        val projectDir = project.guessProjectDir()?.toNioPathOrNull()
-            ?: return Response(error = "can't find project dir")
-
-        val path = projectDir.resolveRel(args.pathInProject)
-        if (!path.exists()) {
-            path.createParentDirectories().createFile()
-        }
-        val text = args.text
-        path.writeText(text.unescape())
-        LocalFileSystem.getInstance().refreshAndFindFileByNioFile(path)
-
-        return Response("ok")
-    }
-}
+//@Serializable
+//data class CreateNewFileWithTextArgs(val pathInProject: String, val text: String)
+//
+//class CreateNewFileWithTextTool : AbstractMcpTool<CreateNewFileWithTextArgs>() {
+//    override val name: String = "create_new_file_with_text"
+//    override val description: String = """
+//        Creates a new file at the specified path within the project directory and populates it with the provided text.
+//        Use this tool to generate new files in your project structure.
+//        Requires two parameters:
+//            - pathInProject: The relative path where the file should be created
+//            - text: The content to write into the new file
+//        Returns one of two possible responses:
+//            - "ok" if the file was successfully created and populated
+//            - "can't find project dir" if the project directory cannot be determined
+//        Note: Creates any necessary parent directories automatically
+//    """
+//
+//    override fun handle(project: Project, args: CreateNewFileWithTextArgs): Response {
+//        val projectDir = project.guessProjectDir()?.toNioPathOrNull()
+//            ?: return Response(error = "can't find project dir")
+//
+//        val path = projectDir.resolveRel(args.pathInProject)
+//        if (!path.exists()) {
+//            path.createParentDirectories().createFile()
+//        }
+//        val text = args.text
+//        path.writeText(text.unescape())
+//        LocalFileSystem.getInstance().refreshAndFindFileByNioFile(path)
+//
+//        return Response("ok")
+//    }
+//}
 
 private fun String.unescape(): String = removePrefix("<![CDATA[").removeSuffix("]]>")
 
@@ -367,60 +367,60 @@ class GetFileTextByPathTool : AbstractMcpTool<PathInProject>() {
 }
 
 
-@Serializable
-data class ReplaceTextByPathToolArgs(val pathInProject: String, val text: String)
-
-class ReplaceTextByPathTool : AbstractMcpTool<ReplaceTextByPathToolArgs>() {
-    override val name: String = "replace_file_text_by_path"
-    override val description: String = """
-        Replaces the entire content of a specified file with new text, if the file is within the project.
-        Use this tool to modify file contents using a path relative to the project root.
-        Requires two parameters:
-        - pathInProject: The path to the target file, relative to project root
-        - text: The new content to write to the file
-        Returns one of these responses:
-        - "ok" if the file was successfully updated
-        - error "project dir not found" if project directory cannot be determined
-        - error "file not found" if the file doesn't exist
-        - error "could not get document" if the file content cannot be accessed
-        Note: Automatically saves the file after modification
-    """
-
-    override fun handle(project: Project, args: ReplaceTextByPathToolArgs): Response {
-        val projectDir = project.guessProjectDir()?.toNioPathOrNull()
-            ?: return Response(error = "project dir not found")
-
-        var document: Document? = null
-
-        val readResult = runReadAction {
-            var file: VirtualFile = LocalFileSystem.getInstance()
-                .refreshAndFindFileByNioFile(projectDir.resolveRel(args.pathInProject))
-                ?: return@runReadAction "file not found"
-
-            if (!GlobalSearchScope.allScope(project).contains(file)) {
-                return@runReadAction "file not found"
-            }
-
-            document = FileDocumentManager.getInstance().getDocument(file)
-            if (document == null) {
-                return@runReadAction "could not get document"
-            }
-
-            return@runReadAction "ok"
-        }
-
-        if (readResult != "ok") {
-            return Response(error = readResult)
-        }
-
-        WriteCommandAction.runWriteCommandAction(project) {
-            document!!.setText(args.text)
-            FileDocumentManager.getInstance().saveDocument(document!!)
-        }
-
-        return Response("ok")
-    }
-}
+//@Serializable
+//data class ReplaceTextByPathToolArgs(val pathInProject: String, val text: String)
+//
+//class ReplaceTextByPathTool : AbstractMcpTool<ReplaceTextByPathToolArgs>() {
+//    override val name: String = "replace_file_text_by_path"
+//    override val description: String = """
+//        Replaces the entire content of a specified file with new text, if the file is within the project.
+//        Use this tool to modify file contents using a path relative to the project root.
+//        Requires two parameters:
+//        - pathInProject: The path to the target file, relative to project root
+//        - text: The new content to write to the file
+//        Returns one of these responses:
+//        - "ok" if the file was successfully updated
+//        - error "project dir not found" if project directory cannot be determined
+//        - error "file not found" if the file doesn't exist
+//        - error "could not get document" if the file content cannot be accessed
+//        Note: Automatically saves the file after modification
+//    """
+//
+//    override fun handle(project: Project, args: ReplaceTextByPathToolArgs): Response {
+//        val projectDir = project.guessProjectDir()?.toNioPathOrNull()
+//            ?: return Response(error = "project dir not found")
+//
+//        var document: Document? = null
+//
+//        val readResult = runReadAction {
+//            var file: VirtualFile = LocalFileSystem.getInstance()
+//                .refreshAndFindFileByNioFile(projectDir.resolveRel(args.pathInProject))
+//                ?: return@runReadAction "file not found"
+//
+//            if (!GlobalSearchScope.allScope(project).contains(file)) {
+//                return@runReadAction "file not found"
+//            }
+//
+//            document = FileDocumentManager.getInstance().getDocument(file)
+//            if (document == null) {
+//                return@runReadAction "could not get document"
+//            }
+//
+//            return@runReadAction "ok"
+//        }
+//
+//        if (readResult != "ok") {
+//            return Response(error = readResult)
+//        }
+//
+//        WriteCommandAction.runWriteCommandAction(project) {
+//            document!!.setText(args.text)
+//            FileDocumentManager.getInstance().saveDocument(document!!)
+//        }
+//
+//        return Response("ok")
+//    }
+//}
 
 
 @Serializable
@@ -519,51 +519,51 @@ class SearchInFilesContentTool : AbstractMcpTool<SearchInFilesArgs>() {
     }
 }
 
-class GetRunConfigurationsTool : AbstractMcpTool<NoArgs>() {
-    override val name: String
-        get() = "get_run_configurations"
-    override val description: String
-        get() = "Returns a list of run configurations for the current project. " +
-                "Use this tool to query the list of available run configurations in current project." +
-                "Then you shall to call \"run_configuration\" tool if you find anything relevant." +
-                "Returns JSON list of run configuration names. Empty list if no run configurations found."
+//class GetRunConfigurationsTool : AbstractMcpTool<NoArgs>() {
+//    override val name: String
+//        get() = "get_run_configurations"
+//    override val description: String
+//        get() = "Returns a list of run configurations for the current project. " +
+//                "Use this tool to query the list of available run configurations in current project." +
+//                "Then you shall to call \"run_configuration\" tool if you find anything relevant." +
+//                "Returns JSON list of run configuration names. Empty list if no run configurations found."
+//
+//    override fun handle(project: Project, args: NoArgs): Response {
+//        val runManager = RunManager.getInstance(project)
+//
+//        val configurations = runManager.allSettings.map { it.name }.joinToString(
+//            prefix = "[",
+//            postfix = "]",
+//            separator = ","
+//        ) { "\"$it\"" }
+//
+//        return Response(configurations)
+//    }
+//}
 
-    override fun handle(project: Project, args: NoArgs): Response {
-        val runManager = RunManager.getInstance(project)
-
-        val configurations = runManager.allSettings.map { it.name }.joinToString(
-            prefix = "[",
-            postfix = "]",
-            separator = ","
-        ) { "\"$it\"" }
-
-        return Response(configurations)
-    }
-}
-
-@Serializable
-data class RunConfigArgs(val configName: String)
-
-class RunConfigurationTool : AbstractMcpTool<RunConfigArgs>() {
-    override val name: String = "run_configuration"
-    override val description: String = "Run a specific run configuration in the current project. " +
-            "Use this tool to run a run configuration that you have found from \"get_run_configurations\" tool." +
-            "Returns one of two possible responses: " +
-            " - \"ok\" if the run configuration was successfully executed " +
-            " - \"error <error message>\" if the run configuration was not found or failed to execute"
-
-    override fun handle(project: Project, args: RunConfigArgs): Response {
-        val runManager = RunManager.getInstance(project)
-        val settings = runManager.allSettings.find { it.name == args.configName }
-        val executor = getRunExecutorInstance()
-        if (settings != null) {
-            executeConfiguration(settings, executor)
-        } else {
-            println("Run configuration with name '${args.configName}' not found.")
-        }
-        return Response("ok")
-    }
-}
+//@Serializable
+//data class RunConfigArgs(val configName: String)
+//
+//class RunConfigurationTool : AbstractMcpTool<RunConfigArgs>() {
+//    override val name: String = "run_configuration"
+//    override val description: String = "Run a specific run configuration in the current project. " +
+//            "Use this tool to run a run configuration that you have found from \"get_run_configurations\" tool." +
+//            "Returns one of two possible responses: " +
+//            " - \"ok\" if the run configuration was successfully executed " +
+//            " - \"error <error message>\" if the run configuration was not found or failed to execute"
+//
+//    override fun handle(project: Project, args: RunConfigArgs): Response {
+//        val runManager = RunManager.getInstance(project)
+//        val settings = runManager.allSettings.find { it.name == args.configName }
+//        val executor = getRunExecutorInstance()
+//        if (settings != null) {
+//            executeConfiguration(settings, executor)
+//        } else {
+//            println("Run configuration with name '${args.configName}' not found.")
+//        }
+//        return Response("ok")
+//    }
+//}
 
 class GetProjectModulesTool : AbstractMcpTool<NoArgs>() {
     override val name: String = "get_project_modules"
